@@ -71,7 +71,13 @@ module.exports = async function (options = {}) {
       linkify: true,
       typographer: true
     })
+      /*
+        Configures a Markdown-it plugin by passing it an array of extension objects, each responsible for handling specific custom syntax in Markdown documents.
+      */
       .use(require('./src/markdown-it-extensions.js'), [
+        /*
+          The first extension (= the first configuration object = the first element of the array) focuses on terminology-related constructs, using a filter to match types against a regular expression (terminologyRegex).
+        */
         {
           filter: type => type.match(terminologyRegex),
           parse(token, type, primary) {
@@ -92,7 +98,20 @@ module.exports = async function (options = {}) {
               href="${url}#term:${term}">${token.info.args[1]}</a>`;
             }
             else if (type === 'tref') {
-              return `<span class="transcluded-xref-term" id="term:${token.info.args[1]}">${token.info.args[1]}</span>`;
+              // Support tref with optional alias: [[tref: spec, term, alias]]
+              const termName = token.info.args[1];
+              const alias = token.info.args[2]; // Optional alias
+              
+              // Create IDs for both the original term and the alias to enable referencing by either
+              const termId = `term:${termName.replace(spaceRegex, '-').toLowerCase()}`;
+              const aliasId = alias ? `term:${alias.replace(spaceRegex, '-').toLowerCase()}` : '';
+              
+              // Always display the original term name, but create additional ID for alias if provided
+              if (aliasId && alias !== termName) {
+                return `<span class="transcluded-xref-term" id="${termId}"><span id="${aliasId}">${termName}</span></span>`;
+              } else {
+                return `<span class="transcluded-xref-term" id="${termId}">${termName}</span>`;
+              }
             }
             else {
               references.push(primary);
@@ -100,6 +119,9 @@ module.exports = async function (options = {}) {
             }
           }
         },
+        /*        
+          The second extension is designed for handling specification references.
+        */
         {
           filter: type => type.match(specNameRegex),
           parse(token, type, name) {
@@ -189,22 +211,34 @@ module.exports = async function (options = {}) {
        * Custom replacer for tref tags that converts them directly to HTML definition term elements.
        * 
        * This is a critical part of our solution for fixing transcluded terms in definition lists.
-       * When a [[tref:spec,term]] tag is found in the markdown, this replacer transforms it into
-       * a proper <dt> element with the appropriate structure before the markdown parser processes it.
+       * When a [[tref:spec,term]] or [[tref:spec,term,alias]] tag is found in the markdown, 
+       * this replacer transforms it into a proper <dt> element with the appropriate structure 
+       * before the markdown parser processes it.
        * 
        * By directly generating the HTML structure (instead of letting the markdown-it parser
        * handle it later), we prevent the issue where transcluded terms break the definition list.
        * 
-       * @param {string} originalMatch - The original [[tref:spec,term]] tag found in the markdown
+       * @param {string} originalMatch - The original [[tref:spec,term]] or [[tref:spec,term,alias]] tag found in the markdown
        * @param {string} type - The tag type ('tref')
        * @param {string} spec - The specification identifier (e.g., 'wot-1')
        * @param {string} term - The term to transclude (e.g., 'DAR')
+       * @param {string} alias - Optional alias for the term (e.g., 'nti')
        * @returns {string} - HTML representation of the term as a dt element
        */
       {
         test: 'tref',
-        transform: function (originalMatch, type, spec, term) {
-          return `<dt class="transcluded-xref-term"><span class="transcluded-xref-term" id="term:${term.replace(/\s+/g, '-').toLowerCase()}">${term}</span></dt>`;
+        transform: function (originalMatch, type, spec, term, alias) {
+          // Always display the original term name, not the alias
+          const displayName = term;
+          const termId = `term:${term.replace(/\s+/g, '-').toLowerCase()}`;
+          const aliasId = alias ? `term:${alias.replace(/\s+/g, '-').toLowerCase()}` : '';
+          
+          // Create HTML with both IDs if alias is provided
+          if (alias && alias !== term) {
+            return `<dt class="transcluded-xref-term"><span class="transcluded-xref-term" id="${termId}"><span id="${aliasId}">${displayName}</span></span></dt>`;
+          } else {
+            return `<dt class="transcluded-xref-term"><span class="transcluded-xref-term" id="${termId}">${displayName}</span></dt>`;
+          }
         }
       }
     ];

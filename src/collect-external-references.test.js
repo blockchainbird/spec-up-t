@@ -93,6 +93,46 @@ And here we reference it again using [[tref:kmg-1,authentic-chained-data-contain
 ### Conclusion
 That's all about these references.`,
             shouldMatch: true
+        },
+
+        // Test cases for aliases - the function should match when the original term exists regardless of alias
+        {
+            name: 'tref with alias should match based on original term',
+            xtref: { externalSpec: 'vlei1', term: 'vlei-ecosystem-governance-framework' },
+            markdown: '[[tref:vlei1, vlei-ecosystem-governance-framework, vEGF]]',
+            shouldMatch: true
+        },
+        {
+            name: 'xref with alias should match based on original term',
+            xtref: { externalSpec: 'vlei1', term: 'vlei-ecosystem-governance-framework' },
+            markdown: '[[xref:vlei1, vlei-ecosystem-governance-framework, vEGF]]',
+            shouldMatch: true
+        },
+        {
+            name: 'multiple aliases for same term should match',
+            xtref: { externalSpec: 'spec1', term: 'long-term-name' },
+            markdown: 'Text [[tref:spec1, long-term-name, alias1]] and [[tref:spec1, long-term-name, alias2]]',
+            shouldMatch: true
+        },
+        {
+            name: 'tref with spaces in alias should match',
+            xtref: { externalSpec: 'spec1', term: 'term1' },
+            markdown: '[[tref:spec1, term1, alias with spaces]]',
+            shouldMatch: true
+        },
+
+        // Test case for the specific issue with hyphens and spaces
+        {
+            name: 'external spec and term with hyphens and alias should match',
+            xtref: { externalSpec: 'vlei-glossary', term: 'vlei-ecosystem-governance-framework' },
+            markdown: '[[tref: vlei-glossary, vlei-ecosystem-governance-framework, vegf]]',
+            shouldMatch: true
+        },
+        {
+            name: 'external spec and term with hyphens without alias should match',
+            xtref: { externalSpec: 'vlei-glossary', term: 'vlei-ecosystem-governance-framework' },
+            markdown: '[[tref: vlei-glossary, vlei-ecosystem-governance-framework]]',
+            shouldMatch: true
         }
     ];
 
@@ -119,12 +159,15 @@ describe('addNewXTrefsFromMarkdown', () => {
         });
     });
 
-    it('should not add duplicate xtrefs', () => {
-        const markdownContent = "Content [[xref:specA, termA]] and again [[xref:specA, termA]]";
+    it('should not add duplicate xtrefs with same spec and term but different aliases', () => {
+        const markdownContent = "Content [[xref:specA, termA]] and again [[xref:specA, termA, aliasA]]";
         const allXTrefs = { xtrefs: [] };
         const updatedXTrefs = addNewXTrefsFromMarkdown(markdownContent, allXTrefs);
 
         expect(updatedXTrefs.xtrefs.length).toBe(1);
+        expect(updatedXTrefs.xtrefs[0].term).toBe('termA');
+        expect(updatedXTrefs.xtrefs[0].externalSpec).toBe('specA');
+        // The first one found will be used (without alias in this case)
     });
 
     it('should add multiple distinct xtrefs', () => {
@@ -149,4 +192,112 @@ describe('addNewXTrefsFromMarkdown', () => {
         expect(updatedXTrefs.xtrefs.length).toBe(0);
     });
 
+    it('should add a new tref with alias from markdown content', () => {
+        const markdownContent = "Some text [[tref:specA, termA, aliasA]] more text";
+        const allXTrefs = { xtrefs: [] };
+        const updatedXTrefs = addNewXTrefsFromMarkdown(markdownContent, allXTrefs);
+
+        expect(updatedXTrefs.xtrefs.length).toBe(1);
+        expect(updatedXTrefs.xtrefs[0]).toEqual({
+            externalSpec: 'specA',
+            term: 'termA',
+            alias: 'aliasA'
+        });
+    });
+
+    it('should add a new xref with alias from markdown content', () => {
+        const markdownContent = "Some text [[xref:specA, termA, aliasA]] more text";
+        const allXTrefs = { xtrefs: [] };
+        const updatedXTrefs = addNewXTrefsFromMarkdown(markdownContent, allXTrefs);
+
+        expect(updatedXTrefs.xtrefs.length).toBe(1);
+        expect(updatedXTrefs.xtrefs[0]).toEqual({
+            externalSpec: 'specA',
+            term: 'termA',
+            alias: 'aliasA'
+        });
+    });
+
+    it('should handle tref without alias (backwards compatibility)', () => {
+        const markdownContent = "Some text [[tref:specA, termA]] more text";
+        const allXTrefs = { xtrefs: [] };
+        const updatedXTrefs = addNewXTrefsFromMarkdown(markdownContent, allXTrefs);
+
+        expect(updatedXTrefs.xtrefs.length).toBe(1);
+        expect(updatedXTrefs.xtrefs[0]).toEqual({
+            externalSpec: 'specA',
+            term: 'termA'
+        });
+        expect(updatedXTrefs.xtrefs[0].alias).toBeUndefined();
+    });
+
+});
+
+
+describe('processXTref', () => {
+    const processXTref = require('./collect-external-references').processXTref;
+
+    it('should process basic xref without alias', () => {
+        const xtref = '[[xref:specA,termA]]';
+        const result = processXTref(xtref);
+        
+        expect(result).toEqual({
+            externalSpec: 'specA',
+            term: 'termA'
+        });
+    });
+
+    it('should process basic tref without alias', () => {
+        const xtref = '[[tref:specA,termA]]';
+        const result = processXTref(xtref);
+        
+        expect(result).toEqual({
+            externalSpec: 'specA',
+            term: 'termA'
+        });
+    });
+
+    it('should process tref with alias', () => {
+        const xtref = '[[tref:specA,termA,aliasA]]';
+        const result = processXTref(xtref);
+        
+        expect(result).toEqual({
+            externalSpec: 'specA',
+            term: 'termA',
+            alias: 'aliasA'
+        });
+    });
+
+    it('should process xref with alias', () => {
+        const xtref = '[[xref:specA,termA,aliasA]]';
+        const result = processXTref(xtref);
+        
+        expect(result).toEqual({
+            externalSpec: 'specA',
+            term: 'termA',
+            alias: 'aliasA'
+        });
+    });
+
+    it('should handle spaces in parameters', () => {
+        const xtref = '[[tref: specA , termA , aliasA ]]';
+        const result = processXTref(xtref);
+        
+        expect(result).toEqual({
+            externalSpec: 'specA',
+            term: 'termA',
+            alias: 'aliasA'
+        });
+    });
+
+    it('should ignore empty alias parameter', () => {
+        const xtref = '[[tref:specA,termA,]]';
+        const result = processXTref(xtref);
+        
+        expect(result).toEqual({
+            externalSpec: 'specA',
+            term: 'termA'
+        });
+        expect(result.alias).toBeUndefined();
+    });
 });

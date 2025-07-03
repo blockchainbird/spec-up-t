@@ -44,7 +44,6 @@ function highlightHeadingSection(anchor) {
     // Check if the target element is a valid heading (h2-h6)
     const headingLevel = getHeadingLevel(targetElement);
     if (headingLevel === null) {
-        console.info('Target element is not a valid heading (h2-h6):', elementId);
         return false;
     }
 

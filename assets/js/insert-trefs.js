@@ -27,11 +27,10 @@ function insertTrefs(allXTrefs) {
        * @type {Array<{element: Element, textContent: string, dt: Element, parent: Element}>}
        */
       const allTerms = [];
-      document.querySelectorAll('dt span.transcluded-xref-term').forEach(termElement => {
-         const textContent = Array.from(termElement.childNodes)
-            .filter(node => node.nodeType === Node.TEXT_NODE)
-            .map(node => node.textContent.trim())
-            .join('');
+
+      document.querySelectorAll('dl.terms-and-definitions-list dt span.transcluded-xref-term').forEach((termElement) => {
+         // Get the full text content including any nested spans (for aliases)
+         const textContent = termElement.textContent.trim();
 
          // Find the dt element once outside the loop
          const dt = termElement.closest('dt');
@@ -160,15 +159,15 @@ function insertTrefs(allXTrefs) {
             const { dt, parent, fragment } = change;
             parent.insertBefore(fragment, dt.nextSibling);
          });
-         
+
          // Dispatch a custom event when all DOM modifications are complete
          // This allows other scripts to know exactly when our work is done
          /**
           * Dispatches a custom event to signal that trefs insertion is complete
           * @fires trefs-inserted
           */
-         document.dispatchEvent(new CustomEvent('trefs-inserted', { 
-            detail: { count: domChanges.length } 
+         document.dispatchEvent(new CustomEvent('trefs-inserted', {
+            detail: { count: domChanges.length }
          }));
       });
    }
@@ -178,8 +177,8 @@ function insertTrefs(allXTrefs) {
    } else {
       console.error('allXTrefs is undefined or missing xtrefs property');
       // Dispatch event even when there are no xrefs, so waiting code knows we're done
-      document.dispatchEvent(new CustomEvent('trefs-inserted', { 
-         detail: { count: 0, error: 'Missing xtrefs data' } 
+      document.dispatchEvent(new CustomEvent('trefs-inserted', {
+         detail: { count: 0, error: 'Missing xtrefs data' }
       }));
    }
 }

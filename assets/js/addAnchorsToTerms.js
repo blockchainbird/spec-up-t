@@ -1,9 +1,17 @@
 function addAnchorsToTerms() {
-    // Function to find the deepest <span>
-    // Spec-Up is generating nested spans. The deepest span is the main term, and that is what we need.
-    function findDeepestSpan(element) {
+    // Function to find the appropriate span for anchor linking
+    // For external references (tref), we need to use the main term ID, not alias ID
+    function findMainTermSpan(element) {
+        // First, check if this is a transcluded external reference
+        const transcludedSpan = element.querySelector('span.transcluded-xref-term[id^="term:"]');
+        if (transcludedSpan) {
+            // For transcluded external references, always use the main term ID (outermost span)
+            // This ensures that anchor links work correctly with external content insertion
+            return transcludedSpan;
+        }
+        
+        // For regular terms, find the deepest span
         let currentElement = element;
-        // While there is a <span> child, keep going deeper
         while (currentElement.querySelector('span[id^="term:"]')) {
             currentElement = currentElement.querySelector('span[id^="term:"]');
         }
@@ -15,7 +23,7 @@ function addAnchorsToTerms() {
 
     dts.forEach(item => {
 
-        const dt = findDeepestSpan(item);
+        const dt = findMainTermSpan(item);
         const id = dt.getAttribute('id');
         const a = document.createElement('a');
         a.setAttribute('href', `#${id}`);

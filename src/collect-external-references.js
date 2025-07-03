@@ -54,26 +54,37 @@ const readlineSync = require('readline-sync');
  * @returns {boolean} True if the xtref is found in the content
  */
 function isXTrefInMarkdown(xtref, markdownContent) {
-    const regex = new RegExp(`\\[\\[(?:x|t)ref:${xtref.externalSpec},\\s*${xtref.term}\\]\\]`, 'g');
-    return regex.test(markdownContent);
+    // Escape special regex characters in externalSpec and term
+    const escapedSpec = xtref.externalSpec.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
+    const escapedTerm = xtref.term.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
+    
+    // Check for both the term and with any alias (accounting for spaces)
+    const regexTerm = new RegExp(`\\[\\[(?:x|t)ref:\\s*${escapedSpec},\\s*${escapedTerm}(?:,\\s*[^\\]]+)?\\]\\]`, 'g');
+    return regexTerm.test(markdownContent);
 }
 
 /**
  * Helper function to process an XTref string and return an object.
  * 
  * @param {string} xtref - The xtref string to process
- * @returns {Object} An object with externalSpec and term properties
+ * @returns {Object} An object with externalSpec, term, and optional alias properties
  */
 function processXTref(xtref) {
-    let [externalSpec, term] = xtref
+    const parts = xtref
         .replace(/\[\[(?:xref|tref):/, '')
         .replace(/\]\]/, '')
         .trim()
-        .split(/,/, 2);
+        .split(/,/);
+    
     const xtrefObject = {
-        externalSpec: externalSpec.trim(),
-        term: term.trim()
+        externalSpec: parts[0].trim(),
+        term: parts[1].trim()
     };
+    
+    // Add alias if provided (third parameter)
+    if (parts.length > 2 && parts[2].trim()) {
+        xtrefObject.alias = parts[2].trim();
+    }
 
     return xtrefObject;
 }
