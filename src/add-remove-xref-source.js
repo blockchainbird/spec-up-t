@@ -1,12 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const Logger = require('./utils/logger');
 
 // Resolve the path to specs.json in the root directory
 const JSON_FILE = path.resolve(process.cwd(), 'specs.json');
 
 // Check if the JSON file exists
 if (!fs.existsSync(JSON_FILE)) {
-    console.error(`Error: ${JSON_FILE} does not exist.`);
+    Logger.error(`Error: ${JSON_FILE} does not exist.`);
     process.exit(1);
 }
 
@@ -30,7 +31,7 @@ function askMode() {
         } else if (mode === 'view' || mode === 'v') {
             showReferences();
         } else {
-            console.log('Invalid option. Please enter add, remove, or view.');
+            Logger.warn('Invalid option. Please enter add, remove, or view.');
             askMode();
         }
     });
@@ -84,15 +85,15 @@ function askRemoveEntry() {
 // Function to show current external references
 function showReferences() {
     const data = JSON.parse(fs.readFileSync(JSON_FILE, 'utf8'));
-    console.log('Current external references (xref):');
+    Logger.info('Current external references (xref):');
 
     data.specs[0].external_specs.forEach(spec => {
-        console.log('--- External Reference: ---');
-        console.log(`Short name: ${spec.external_spec}`);
-        console.log(`GitHub Page: ${spec.gh_page}`);
-        console.log(`URL: ${spec.url}`);
-        console.log(`Terms Directory: ${spec.terms_dir}`);
-        console.log('\n');
+        Logger.separator();
+        Logger.highlight(`Short name: ${spec.external_spec}`);
+        Logger.info(`GitHub Page: ${spec.gh_page}`);
+        Logger.info(`URL: ${spec.url}`);
+        Logger.info(`Terms Directory: ${spec.terms_dir}`);
+        Logger.separator();
     });
     rl.close();
 }
@@ -103,7 +104,7 @@ function updateJSON() {
         const data = JSON.parse(fs.readFileSync(JSON_FILE, 'utf8'));
 
         if (!data.specs || !Array.isArray(data.specs) || !data.specs[0].external_specs) {
-            console.error('Error: Invalid JSON structure. "specs[0].external_specs" is missing.');
+            Logger.error('Error: Invalid JSON structure. "specs[0].external_specs" is missing.');
             process.exit(1);
         }
 
@@ -115,19 +116,17 @@ function updateJSON() {
         );
 
         if (exists) {
-            console.log(
-                `Entry with external_spec "${inputs.external_spec}" already exists. No changes made.`
-            );
+            Logger.warn(`Entry with external_spec "${inputs.external_spec}" already exists. No changes made.`);
             return;
         }
 
         // Add the new entry if it doesn't exist
         externalSpecs.push(inputs);
 
-        fs.writeFileSync(JSON_FILE, JSON.stringify(data, null, 2), 'utf8');
-        console.log(`Updated successfully.`);
+    fs.writeFileSync(JSON_FILE, JSON.stringify(data, null, 2), 'utf8');
+    Logger.success(`Updated successfully.`);
     } catch (error) {
-        console.error(`Error: Failed to update ${JSON_FILE}.`, error.message);
+    Logger.error(`Error: Failed to update ${JSON_FILE}.`, error.message);
         process.exit(1);
     }
 }
@@ -138,7 +137,7 @@ function removeEntry(externalSpec) {
         const data = JSON.parse(fs.readFileSync(JSON_FILE, 'utf8'));
 
         if (!data.specs || !Array.isArray(data.specs) || !data.specs[0].external_specs) {
-            console.error('Error: Invalid JSON structure. "specs[0].external_specs" is missing.');
+            Logger.error('Error: Invalid JSON structure. "specs[0].external_specs" is missing.');
             process.exit(1);
         }
 
@@ -150,17 +149,17 @@ function removeEntry(externalSpec) {
         );
 
         if (filteredSpecs.length === externalSpecs.length) {
-            console.log(`No entry found with external_spec "${externalSpec}".`);
+            Logger.warn(`No entry found with external_spec "${externalSpec}".`);
             return;
         }
 
         // Update the JSON structure
         data.specs[0].external_specs = filteredSpecs;
 
-        fs.writeFileSync(JSON_FILE, JSON.stringify(data, null, 2), 'utf8');
-        console.log(`Removed entry successfully.`);
+    fs.writeFileSync(JSON_FILE, JSON.stringify(data, null, 2), 'utf8');
+    Logger.success(`Removed entry successfully.`);
     } catch (error) {
-        console.error(`Error: Failed to update ${JSON_FILE}.`, error.message);
+    Logger.error(`Error: Failed to update ${JSON_FILE}.`, error.message);
         process.exit(1);
     }
 }

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="${description}">
     <meta name="author" content="${author}">
+    <meta property="spec-up-t:github-repo-info" content="${githubRepoInfo}">
     <link rel="icon" href="${specFavicon}" type="image/x-icon">
     <meta name="generator" content="Spec-Up-T" />
     <title>${title}</title>
@@ -21,7 +22,7 @@
 <body features="${features}">
     <!-- Skip to content link for accessibility -->
     <a href="#content" class="screen-reader-text">Skip to content</a>
-    
+
     ${assetsSvg}
 
     <!-- Icons for hamburger menu, dark/light buttons  -->
@@ -108,12 +109,19 @@
             <path
                 d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
         </symbol>
+        <symbol id="box-arrow-up-right" viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+                d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z" />
+            <path fill-rule="evenodd"
+                d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z" />
+        </symbol>
     </svg>
 
     <header id="header" class="navbar sticky-top p-0 shadow">
         <!-- Left-aligned elements -->
-        <button class="nav-link d-print-none px-3 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu"
-            aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="nav-link d-print-none px-3 d-md-none" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
             <svg class="bi">
                 <use xlink:href="#list" />
             </svg>
@@ -122,7 +130,7 @@
         <a id="logo" href="${specLogoLink}">
             <img class="d-print-none m-1" src="${specLogo}" alt="" />
         </a>
-        
+
         <!-- Spacer to push the following elements to the right -->
         <div class="flex-grow-1"></div>
 
@@ -178,19 +186,19 @@
             </div>
 
             <!-- Container width toggle -->
-            <button id="container_toggle" title="Toggle wide/narrow layout" type="button" class="btn btn-sm btn-outline-secondary me-2">
+            <button id="container_toggle" title="Toggle wide/narrow layout" type="button"
+                class="btn btn-sm btn-outline-secondary me-2">
                 <span class="visually-hidden">Toggle wide/narrow layout</span>
                 <i class="bi bi-arrows-angle-expand"></i>
             </button>
 
             <!-- Font size -->
             <div class="adjust-font-size btn-group me-2" role="group">
-                <button title="Decrease font size" type="button"
-                    class="btn btn-outline-secondary m-0 border-end-0" id="decreaseBtn"><span
-                        class="visually-hidden">Decrease font size</span>
+                <button title="Decrease font size" type="button" class="btn btn-outline-secondary m-0 border-end-0"
+                    id="decreaseBtn"><span class="visually-hidden">Decrease font size</span>
                 </button>
-                <button title="Increase font size" type="button"
-                    class="btn btn-outline-secondary m-0 border-start-0" id="increaseBtn">
+                <button title="Increase font size" type="button" class="btn btn-outline-secondary m-0 border-start-0"
+                    id="increaseBtn">
                     <span class="visually-hidden">Increase font size</span>
                 </button>
             </div>
@@ -209,8 +217,15 @@
                     </div>
                     <div id="toc" class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
                         ${toc}
-                        <a class="powered-by mx-auto p-2" href="https://github.com/trustoverip/spec-up-t"
-                            target="_blank" rel="noopener">Powered By Spec-Up-T</a>
+                        <div class="spec-footer mt-3">
+                            <a class="mx-auto p-2" href="https://github.com/trustoverip/spec-up-t"
+                                target="_blank" rel="noopener">Powered By Spec-Up-T</a>
+                            <small>
+                                <time class="timestamp mx-auto p-2 text-muted" datetime="${universalTimestamp}">
+                                    Generated: ${universalTimestamp}
+                                </time>
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -244,21 +259,46 @@
         </div>
         <div class="offcanvas-body p-0">
             <a target="_blank" rel="noopener" class="btn btn-menu-item m-0 mb-1 border-start-0 border-end-0"
-                href="https://blockchainbird.github.io/spec-up-t-website/docs/user-interface-overview/specification/#explanation-of-the-buttons-in-the-specification">Help</a>
-            <button class="button-token-input btn btn-menu-item m-0 mb-1 border-start-0 border-end-0" type="button" aria-label="Enter GitHub Token">
+                href="https://trustoverip.github.io/spec-up-t-website/docs/user-interface-overview/specification/#explanation-of-the-buttons-in-the-specification">Help</a>
+            <button class="button-token-input btn btn-menu-item m-0 mb-1 border-start-0 border-end-0" type="button"
+                aria-label="Enter GitHub Token">
                 Enter GitHub Token
             </button>
-            <button id="repo_issues" issue-count animate class="btn btn-menu-item m-0 mb-1 border-start-0 border-end-0" type="button"
-                data-bs-toggle="offcanvas" data-bs-target="#offcanvasIssues" aria-controls="offcanvasIssues">
+            <button id="repo_issues" issue-count animate class="btn btn-menu-item m-0 mb-1 border-start-0 border-end-0"
+                type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasIssues"
+                aria-controls="offcanvasIssues">
                 Issues
             </button>
-            <!-- href added via JS -->
-            <a id="snapshotLink" class="btn btn-menu-item m-0 mb-1 border-start-0 border-end-0" href="#">Snapshots</a>
             <hr>
-            <p class="ps-3 pe-3">External specifications:</p>
-            ${externalSpecsList}
+            <div class="ps-3 pe-3">
+                <p class="mb-2 fw-bold">Repository Information:</p>
+                <div id="github-repo-info" class="small text-muted">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span>Account: <span id="repo-account">Loading...</span></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="bi bi-git me-2"></i>
+                        <span>Repository: <span id="repo-name">Loading...</span></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-tree me-2"></i>
+                        <span>Branch: <span id="repo-branch">Loading...</span></span>
+                    </div>
+                    <a id="repo-url" href="#" target="_blank" rel="noopener"
+                        class="btn btn-sm btn-outline-secondary ms-0">
+                        <i class="bi bi-github me-1"></i>
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
             <hr>
-            <p id="w3c-state">W3C Recommendation, ${currentDate}</p>
+            <div class="ps-3 pe-3">
+                <p class="mb-2 fw-bold">External Specifications:</p>
+                ${externalSpecsList}
+            </div>
+            <hr>
+            <p class="ps-3 pe-3" id="w3c-state">W3C Recommendation, ${currentDate}</p>
         </div>
     </div>
 

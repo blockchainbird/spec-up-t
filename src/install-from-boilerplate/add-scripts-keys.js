@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const Logger = require('../utils/logger');
 
 /**
  * Adds scripts to the package.json file.
@@ -15,7 +16,7 @@ function addScriptsKeys(scriptKeys, overwriteKeys = {}) {
     // Read the package.json file
     fs.readFile(packageJsonPath, 'utf8', (err, data) => {
         if (err) {
-            console.error('❌ Error reading package.json:', err);
+            Logger.error('Error reading package.json:', err);
             return;
         }
 
@@ -38,13 +39,13 @@ function addScriptsKeys(scriptKeys, overwriteKeys = {}) {
             // Write the updated package.json back to disk
             fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8', (err) => {
                 if (err) {
-                    console.error('❌ Error writing package.json:', err);
+                    Logger.error('Error writing package.json:', err);
                 } else {
-                    console.log('✅ Scripts added to package.json successfully!');
+                    Logger.success('Scripts added to package.json successfully!');
                 }
             });
         } catch (parseError) {
-            console.error('❌ Error parsing package.json:', parseError);
+            Logger.error('Error parsing package.json:', parseError);
         }
     });
 }

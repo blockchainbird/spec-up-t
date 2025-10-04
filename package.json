@@ -26,6 +26,8 @@
     "@octokit/plugin-throttling": "^9.4.0",
     "@traptitech/markdown-it-katex": "^3.3.0",
     "axios": "^1.7.7",
+    "chalk": "^4.1.2",
+    "cheerio": "^1.1.2",
     "dedent": "^1.5.3",
     "diff": "^7.0.0",
     "docx": "^8.5.0",
@@ -69,7 +71,8 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^30.0.5"
+    "jest-environment-jsdom": "^30.0.5",
+    "unimported": "^1.31.0"
   },
   "scripts": {
     "test": "jest",

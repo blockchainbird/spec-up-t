@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { spawnSync } = require('child_process');
+const Logger = require('./logger');
 
 /**
  * Helper function to get the absolute path of a command
@@ -35,7 +36,7 @@ function getCommandPath(command) {
     
     // If we can't find the absolute path, return the command name as fallback
     // This maintains functionality while logging the issue
-    console.warn(`Warning: Could not find absolute path for command '${command}', using relative path as fallback`);
+    Logger.warn(`Could not find absolute path for command '${command}', using relative path as fallback`);
     return command;
 }
 
@@ -67,7 +68,7 @@ function openFile(filePath) {
         const result = spawnSync(openCommand, [filePath], { stdio: 'ignore' });
         return result.status === 0;
     } catch (error) {
-        console.error('Failed to open file:', error);
+        Logger.error('Failed to open file:', error);
         return false;
     }
 }

@@ -1,24 +1,23 @@
 /**
  * @file This file creates a collapsible meta info section for each term definition on the page. It is used to hide meta information about a term definition by default and show it when the user clicks the button.
  * @author Kor Dwarshuis
- * @version 0.0.2
+ * @version 0.0.3
  * @since 2025-02-16
+ * @updated 2025-10-02 - Refactored to use centralized button container utilities
+ * @requires definition-button-container-utils.js - For the addButtonToContainer utility function
  */
 
 /**
  * Creates a toggle button for collapsible meta information sections.
+ * Creates or reuses a button container and adds the meta-info button to it.
  * @function createToggleButton
  * @param {HTMLElement} element - The DD element that contains the meta information
  * @returns {void}
  */
 function createToggleButton(element) {
     const toggleButton = document.createElement('button');
-    toggleButton.classList.add('meta-info-toggle-button', 'btn');
-    toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="shape-rendering: geometricPrecision;">' +
-        '<path fill-rule="evenodd" d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>' +
-        '<path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588z"/>' +
-        '<path d="M9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>' +
-        '</svg>';
+    toggleButton.classList.add('meta-info-toggle-button', 'btn', 'fs-1', 'd-flex', 'align-items-center','justify-content-center');
+    toggleButton.innerHTML = '<i class="bi bi-info-circle" style="margin-top: -0.5em;"></i>';
     toggleButton.title = 'Meta info';
 
     // Add event listener to the button
@@ -41,13 +40,16 @@ function createToggleButton(element) {
         }
     });
 
-    // Find the closest <dt> sibling and insert the button inside it
+    // Find the closest <dt> sibling
     let dtElement = element.previousElementSibling;
     while (dtElement && dtElement.tagName !== 'DT') {
         dtElement = dtElement.previousElementSibling;
     }
+    
     if (dtElement) {
-        dtElement.appendChild(toggleButton);
+        // Use the centralized utility to add the button to the container
+        // Prepend=true ensures meta-info button appears first
+        addButtonToContainer(dtElement, toggleButton, true);
     } else {
         // Fallback to inserting at the top right of the element if no <dt> is found
         element.insertBefore(toggleButton, element.firstChild);

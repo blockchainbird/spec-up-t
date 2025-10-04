@@ -3,7 +3,7 @@ function addAnchorsToTerms() {
     // For external references (tref), we need to use the main term ID, not alias ID
     function findMainTermSpan(element) {
         // First, check if this is a transcluded external reference
-        const transcludedSpan = element.querySelector('span.transcluded-xref-term[id^="term:"]');
+        const transcludedSpan = element.querySelector('span.term-external[id^="term:"]');
         if (transcludedSpan) {
             // For transcluded external references, always use the main term ID (outermost span)
             // This ensures that anchor links work correctly with external content insertion

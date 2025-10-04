@@ -14,11 +14,7 @@ h6 {
 
 /* ====== TERMINOLOGY SECTION CONTAINER ====== */
 #terminology-section-utility-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   margin: 1em auto;
-  padding: 0;
   width: 100%;
 }
 
@@ -69,14 +65,52 @@ dl.terms-and-definitions-list>dt {
   /* Improve line spacing */
   font-size: 1.05em;
   /* Slightly larger font for better hierarchy */
+  /* Use flexbox for proper layout of term text and button container */
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  /* Vertically center the content */
+  gap: 0.5rem;
+  /* Space between term text and buttons */
+  min-height: 2.5rem;
+  /* Ensure minimum height for buttons */
 }
 
-/* This adds spacing between the term text and the buttons */
+/* ====== ELLIPSIS TRUNCATION WITH HOVER EXPANSION ====== */
+/* Term text styling with ellipsis truncation and hover expansion */
 dl.terms-and-definitions-list>dt>span {
-  margin-right: 1.5em;
-  /* Add spacing to the right of the term text */
+  /* Flex item that grows to fill available space */
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Allow flex item to shrink below content size */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease-in-out;
+}
+
+/* On hover or focus (including parent dt), expand to show full content */
+/* The term will expand naturally and wrap if needed, buttons will only wrap if necessary */
+dl.terms-and-definitions-list>dt>span:hover,
+dl.terms-and-definitions-list>dt>span:focus,
+dl.terms-and-definitions-list>dt:hover>span,
+dl.terms-and-definitions-list>dt:focus>span {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
+  word-wrap: break-word;
+  line-height: 1.4;
+  /* Don't force full width - let it expand naturally */
+  /* Buttons will only wrap if the expanded text actually needs more space */
+}
+
+/* Touch device support - also trigger on tap/touch */
+dl.terms-and-definitions-list>dt>span:active,
+dl.terms-and-definitions-list>dt:active>span {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
+  word-wrap: break-word;
+  line-height: 1.4;
 }
 
 
@@ -205,10 +239,11 @@ dl.terms-and-definitions-list dd.last-dd {
 /* Apply original, more condensed styling when the html element has class "dense-info" */
 html.dense-info dl.terms-and-definitions-list>dt {
   padding: 0.1rem 1.25rem;
-  display: block;
-  /* Revert from flexbox to block */
+  /* Keep flexbox for consistent layout, just reduce padding */
   line-height: inherit;
   font-size: inherit;
+  min-height: auto;
+  /* Remove minimum height in dense mode */
 }
 
 html.dense-info dl.terms-and-definitions-list dd+dt {
@@ -221,19 +256,39 @@ html.dense-info dl.terms-and-definitions-list>dt::before {
 }
 
 html.dense-info dl.terms-and-definitions-list>dt>span {
-  margin-right: 0;
-  /* Remove spacing for term text */
+  /* Keep flex properties for consistent behavior */
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* ====== TRANSCLUSIONS STYLING ====== */
 /* Base transclusion styles */
-.transcluded-xref-term {
+.term-external {
   position: relative;
 }
 
-dl.terms-and-definitions-list>dt.transcluded-xref-term,
-dl.terms-and-definitions-list>dd.transcluded-xref-term {
+dl.terms-and-definitions-list>dt.term-external,
+dl.terms-and-definitions-list>dd.term-external {
   background: #a9dde03b;
+}
+
+/* Local term styling */
+.term-local {
+  position: relative;
+}
+
+dl.terms-and-definitions-list>dt.term-local,
+dl.terms-and-definitions-list>dd.term-local {
+  background: #f0f8ff;
+}
+
+/* Local term original term and parenthetical styling */
+dl.terms-and-definitions-list .term-local-original-term {
+  font-style: italic;
+}
+
+dl.terms-and-definitions-list .term-local-parenthetical-terms {
+  font-weight: normal;
 }
 
 /* Fix for all buttons */
@@ -245,10 +300,6 @@ dl.terms-and-definitions-list>dd.transcluded-xref-term {
   /* Higher z-index for all buttons */
 }
 
-.collapse-all-defs-button {
-  float: right;
-}
-
 .transclusion-heading {
   font-size: 1.3em;
   font-weight: bold;
@@ -256,7 +307,7 @@ dl.terms-and-definitions-list>dd.transcluded-xref-term {
 }
 
 /* Embedded transclusions in definition lists */
-dl.terms-and-definitions-list>dd.transcluded-xref-term-embedded {
+dl.terms-and-definitions-list>dd.term-external-embedded {
   position: relative;
   padding-left: 2.5rem;
   padding-top: 0.3rem;
@@ -264,7 +315,7 @@ dl.terms-and-definitions-list>dd.transcluded-xref-term-embedded {
 }
 
 /* Arrow styling for transclusions */
-dl.terms-and-definitions-list span.transcluded-xref-term::after {
+dl.terms-and-definitions-list span.term-external::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -279,7 +330,7 @@ dl.terms-and-definitions-list span.transcluded-xref-term::after {
 }
 
 /* Inline span styling for transclusions */
-dl.terms-and-definitions-list span.transcluded-xref-term {
+dl.terms-and-definitions-list span.term-external {
   padding-left: 1.5rem;
   display: inline-block;
 }

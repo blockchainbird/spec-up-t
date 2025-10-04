@@ -21,7 +21,7 @@ function handle_choice() {
         echo "  ${options[index]}"
         echo -e "  ************************************\n\n"
         show_progress
-        ${options[index + 1]}
+        "${options[index + 1]}"
     else
         clear
         echo -e "\n\n  ************************************"
@@ -69,7 +69,7 @@ function prompt_input() {
 
 function do_add_content() {
     clear
-    echo -e "\n\n\n   ********************\n\n\n   You can start adding your content to the markdown files in the "spec" directory.\n\n   You can do this by editing local files in an editor or by going to your repository on GitHub.\n\n   More info: https://blockchainbird.github.io/spec-up-t-website/docs/various-roles/content-authors-guide/introduction\n\n\n   ********************"  
+    echo -e "\n\n\n   ********************\n\n\n   You can start adding your content to the markdown files in the "spec" directory.\n\n   You can do this by editing local files in an editor or by going to your repository on GitHub.\n\n   More info: https://trustoverip.github.io/spec-up-t-website/docs/various-roles/content-authors-guide/introduction\n\n\n   ********************"  
 }
 
 function do_render() { clear; npm run render; }
@@ -83,14 +83,14 @@ function do_freeze() { clear; npm run freeze; }
 
 function do_help() {
     clear
-    echo -e "\n\n\n   You will be redirected to the documentation website\n\n   (https://blockchainbird.github.io/spec-up-t-website/)."
+    echo -e "\n\n\n   You will be redirected to the documentation website\n\n   (https://trustoverip.github.io/spec-up-t-website/)."
     sleep 2
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        open "https://blockchainbird.github.io/spec-up-t-website/"
+        open "https://trustoverip.github.io/spec-up-t-website/"
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        xdg-open "https://blockchainbird.github.io/spec-up-t-website/"
+        xdg-open "https://trustoverip.github.io/spec-up-t-website/"
     elif [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-        start "https://blockchainbird.github.io/spec-up-t-website/"
+        start "https://trustoverip.github.io/spec-up-t-website/"
     else
         echo "Unsupported OS."
     fi

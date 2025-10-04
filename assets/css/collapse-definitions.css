@@ -28,7 +28,6 @@ html.definitions-transitioning #content {
 }
 
 .collapse-all-defs-button {
-  float: right;
   display: flex;
   gap: 3px;
   cursor: pointer;

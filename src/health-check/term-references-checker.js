@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const Logger = require('../utils/logger');
+const { externalReferences } = require('../utils/regex-patterns');
 
 /**
  * Extracts the spec name from a tref tag at the beginning of a markdown file
@@ -13,13 +15,13 @@ function extractSpecNameFromTref(firstLine) {
   
   try {
     // Extract content between [[tref: and the next comma
-    const match = firstLine.match(/\[\[tref:([^,]+)/);
+    const match = firstLine.match(externalReferences.trefSpecExtractor);
     if (match && match[1]) {
       // Trim whitespace
       return match[1].trim();
     }
   } catch (error) {
-    console.error('Error extracting spec name from tref:', error);
+    Logger.error('Error extracting spec name from tref:', error);
   }
   
   return null;
@@ -254,7 +256,7 @@ async function checkTermReferences(projectRoot) {
     
     return results;
   } catch (error) {
-    console.error('Error checking term references:', error);
+    Logger.error('Error checking term references:', error);
     return [{
       name: 'Term references check',
       success: false,

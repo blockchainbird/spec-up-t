@@ -3,6 +3,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const Logger = require('./logger');
 
 /**
  * Fetches the .cache/specs-generated.json file and returns it as a JavaScript object
@@ -21,7 +22,7 @@ function fetchSpecs() {
     
     return specs;
   } catch (error) {
-    console.error('Error fetching .cache/specs-generated.json:', error.message);
+    Logger.error('Error fetching .cache/specs-generated.json:', error.message);
     return null;
   }
 }
@@ -43,7 +44,7 @@ function fetchExternalTerms() {
     
     return xtrefs;
   } catch (error) {
-    console.error('Error fetching .cache/xtrefs-data.json:', error.message);
+    Logger.error('Error fetching .cache/xtrefs-data.json:', error.message);
     return null;
   }
 }
@@ -65,7 +66,7 @@ async function fetchSpecsAsync() {
     
     return specs;
   } catch (error) {
-    console.error('Error fetching .cache/specs-generated.json:', error.message);
+    Logger.error('Error fetching .cache/specs-generated.json:', error.message);
     return null;
   }
 }
@@ -87,7 +88,7 @@ async function fetchExternalTermsAsync() {
     
     return xtrefs;
   } catch (error) {
-    console.error('Error fetching .cache/xtrefs-data.json:', error.message);
+    Logger.error('Error fetching .cache/xtrefs-data.json:', error.message);
     return null;
   }
 }

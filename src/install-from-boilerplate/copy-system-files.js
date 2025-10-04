@@ -1,6 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { systemFiles } = require('./config-system-files.js');
+const Logger = require('../utils/logger');
 
 /**
  * Copies system files from the boilerplate directory to the root of the project.
@@ -18,13 +19,13 @@ function copySystemFiles() {
 
         try {
             fs.cpSync(srcPath, destPath, { recursive: true });
-            console.log(`✅ Copied ${item} to ${destPath}`);
+            Logger.success(`Copied ${item} to ${destPath}`);
         } catch (error) {
-            console.error(`❌ Failed to copy ${item} to ${destPath}:`, error);
+            Logger.error(`Failed to copy ${item} to ${destPath}:`, error);
         }
     });
 
-    console.log('✅ Copied system files to current directory');
+    Logger.success('Copied system files to current directory');
 }
 
 module.exports = copySystemFiles;

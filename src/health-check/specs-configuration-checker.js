@@ -29,6 +29,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const Logger = require('../utils/logger');
 
 /**
  * Field descriptions for specs.json keys
@@ -372,7 +373,7 @@ async function checkSpecsJsonConfiguration(projectRoot) {
         return [...results, ...summaryResults];
 
     } catch (error) {
-        console.error('Error checking specs.json configuration:', error);
+        Logger.error('Error checking specs.json configuration:', error);
         return [{
             name: 'specs.json configuration check',
             success: false,

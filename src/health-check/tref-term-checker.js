@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { shouldProcessFile } = require('../utils/file-filter');
+const Logger = require('../utils/logger');
 
 /**
  * Extracts the spec name and term from a tref tag at the beginning of a markdown file
@@ -33,7 +34,7 @@ function extractTrefInfo(firstLine) {
     
     return { repo, term };
   } catch (error) {
-    console.error('Error extracting tref info:', error);
+    Logger.error('Error extracting tref info:', error);
     return null;
   }
 }
@@ -55,7 +56,7 @@ function findAllCacheFiles(cacheDir) {
     
     return files;
   } catch (error) {
-    console.error(`Error finding cache files:`, error);
+    Logger.error(`Error finding cache files:`, error);
     return [];
   }
 }
@@ -76,7 +77,7 @@ function termExistsInRepo(filePath, term) {
     
     // Check if the file has a terms array
     if (!cacheData?.terms?.length) {
-      console.log(`Warning: Cache file ${filePath} has no terms array`);
+      Logger.warn(`Cache file ${filePath} has no terms array`);
       return false;
     }
     
@@ -102,7 +103,7 @@ function termExistsInRepo(filePath, term) {
     
     return false;
   } catch (error) {
-    console.error(`Error checking if term exists in file ${filePath}:`, error);
+    Logger.error(`Error checking if term exists in file ${filePath}:`, error);
     return false;
   }
 }
@@ -137,7 +138,7 @@ function findRepoForCacheFile(filePath, externalSpecs) {
     
     return null;
   } catch (error) {
-    console.error(`Error finding repository for cache file ${filePath}:`, error);
+    Logger.error(`Error finding repository for cache file ${filePath}:`, error);
     return null; // Could not determine repository due to error reading or parsing cache file
   }
 }
@@ -218,7 +219,7 @@ function findCacheFileForRepo(cacheDir, specConfig) {
     
     return null;
   } catch (error) {
-    console.error(`Error finding cache file for repo:`, error);
+    Logger.error(`Error finding cache file for repo:`, error);
     return null;
   }
 }
@@ -534,7 +535,7 @@ async function checkTrefTerms(projectRoot) {
     
     return results;
   } catch (error) {
-    console.error('Error checking tref terms:', error);
+    Logger.error('Error checking tref terms:', error);
     return [{
       name: 'Term reference validation check',
       success: false,

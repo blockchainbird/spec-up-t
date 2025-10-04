@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const url = require('url');
+const Logger = require('../utils/logger');
 
 /**
  * Check if a given URL has correct GitHub Pages structure
@@ -17,7 +18,7 @@ function isValidGitHubPagesUrl(urlStr) {
       parsedUrl.hostname.endsWith('.github.io')
     );
   } catch (error) {
-    console.error(`❌ Error validating GitHub Pages URL: ${error.message}`);
+    Logger.error(`Error validating GitHub Pages URL: ${error.message}`);
     return false;
   }
 }
@@ -35,7 +36,7 @@ function isValidGitHubRepoUrl(urlStr) {
       parsedUrl.pathname.split('/').filter(Boolean).length >= 2
     );
   } catch (error) {
-    console.error(`❌ Error validating GitHub repo URL: ${error.message}`);
+    Logger.error(`Error validating GitHub repo URL: ${error.message}`);
     return false;
   }
 }
@@ -71,7 +72,7 @@ function urlExists(urlStr) {
 
       req.end();
     } catch (error) {
-      console.error(`❌ URL Format Error: Invalid URL format for ${urlStr} - ${error.message}`);
+      Logger.error(`URL Format Error: Invalid URL format for ${urlStr} - ${error.message}`);
       resolve(false);
     }
   });
@@ -272,7 +273,7 @@ async function checkExternalSpecs(projectRoot) {
     
     return allResults;
   } catch (error) {
-    console.error('❌ Error checking external specs:', error);
+    Logger.error('Error checking external specs:', error);
     return [{
       name: 'External specs check',
       success: false,

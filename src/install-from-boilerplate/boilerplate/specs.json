@@ -19,7 +19,8 @@
             "source": {
                 "host": "github",
                 "account": "trustoverip",
-                "repo": "spec-up-t-starter-pack"
+                "repo": "spec-up-t-starter-pack",
+                "branch": "main"
             },
             "external_specs": [
                 {

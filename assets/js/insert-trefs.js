@@ -7,7 +7,7 @@
 /**
  * Inserts transcluded external references (trefs) into the document.
  * This function processes the allXTrefs data and inserts definition content into the document
- * for terms marked with the 'transcluded-xref-term' class.
+ * for terms marked with the 'term-external' class.
  * @param {Object} allXTrefs - The object containing all external references data
  * @param {Array} allXTrefs.xtrefs - Array of external reference objects, each containing term definitions
  */
@@ -28,10 +28,21 @@ function insertTrefs(allXTrefs) {
        */
       const allTerms = [];
 
-      document.querySelectorAll('dl.terms-and-definitions-list dt span.transcluded-xref-term').forEach((termElement) => {
+      document.querySelectorAll('dl.terms-and-definitions-list dt span.term-external').forEach((termElement) => {
+
          // Get the full text content including any nested spans (for aliases) of a term (dt)
          // In case of `[[tref:toip1, agency, ag]]`, this will return `agency`
-         const textContent = termElement.textContent.trim();
+         // const textContent = termElement.textContent.trim();
+
+         /*
+            We used to do this: Get the full text content including any nested spans (for aliases) of a term (dt):
+            `const textContent = termElement.textContent.trim();`
+            (In case of `[[tref:toip1, agency, ag]]`, this will return `agency`)
+
+            We cannot use the textContent directly anymore because it may not match the original term, since that can be the alias. That is why we use data-original-term.
+            In case of `[[tref:toip1, agency, ag]]`, this will always return `agency`, regardless if the alias is used or not, since the original term is stored in data-original-term
+         */
+         const originalTerm = termElement.dataset.originalTerm;
 
          // Find the dt element once outside the loop
          const dt = termElement.closest('dt');
@@ -39,7 +50,7 @@ function insertTrefs(allXTrefs) {
          // Skip if the term has already been processed
          if (dt) {
             const nextElement = dt.nextElementSibling;
-            if (nextElement?.classList.contains('transcluded-xref-term') &&
+            if (nextElement?.classList.contains('term-external') &&
                nextElement.classList.contains('meta-info-content-wrapper')) {
                return; // Already processed
             }
@@ -48,7 +59,7 @@ function insertTrefs(allXTrefs) {
          // Only add terms that haven't been processed yet
          allTerms.push({
             element: termElement,
-            textContent: textContent,
+            textContent: originalTerm,
             dt: dt,
             parent: dt?.parentNode
          });
@@ -60,21 +71,21 @@ function insertTrefs(allXTrefs) {
        * @type {Array<{dt: Element, parent: Element, fragment: DocumentFragment}>}
        */
       const domChanges = allTerms.map(termData => {
-         const { textContent, dt, parent } = termData;
+         const { textContent: originalTerm, dt, parent } = termData;
 
          if (!dt || !parent) {
             return null; // Skip invalid entries
          }
 
          // Find the first matching xref to avoid duplicates
-         const xref = xtrefsData.xtrefs.find(x => x.term === textContent);
-         
+         const xref = xtrefsData.xtrefs.find(x => x.term === originalTerm);
+
          // Create a DocumentFragment to hold all new elements for this term
          const fragment = document.createDocumentFragment();
 
          // Create meta info element
          const metaInfoEl = document.createElement('dd');
-         metaInfoEl.classList.add('transcluded-xref-term', 'meta-info-content-wrapper', 'collapsed');
+         metaInfoEl.classList.add('term-external', 'meta-info-content-wrapper', 'collapsed');
 
          if (xref) {
             // Generate meta info content
@@ -82,10 +93,13 @@ function insertTrefs(allXTrefs) {
             const owner = xref.owner || 'Unknown';
             const repo = xref.repo && xref.repoUrl ? `[${xref.repo}](${xref.repoUrl})` : 'Unknown';
             const commitHash = xref.commitHash || 'Unknown';
+            const linkToOriginalTerm = xref.ghPageUrl ? new URL(`#term:${xref.term}`, xref.ghPageUrl).href : 'Unknown';
 
             const metaInfo = `
 | Property | Value |
 | -------- | ----- |
+| Original Term | ${originalTerm} |
+| Link | ${linkToOriginalTerm} |
 | Owner | ${avatar} ${owner} |
 | Repo | ${repo} |
 | Commit hash | ${commitHash} |
@@ -102,10 +116,45 @@ function insertTrefs(allXTrefs) {
                .replace(/\]\]/g, '');
 
             // Clean up the markdown content in the term definition
-            // Part B: Remove all <a> elements from the content via a temporary div and DOM manipulation
+            // Part B: Remove some <a> elements from the content. We can turn the fact that the inserted URLs are relative (which previously seemed to be a disadvantage) into an advantage, since the fact that the URL then points to a possible local variant is actually an advantage. To this end, if the local variant does indeed exist, we leave the link intact.
             const tempDivForLinks = document.createElement('div');
             tempDivForLinks.innerHTML = md.render(content);
-            tempDivForLinks.querySelectorAll('a').forEach(a => a.replaceWith(...a.childNodes));
+            tempDivForLinks.querySelectorAll('a').forEach(a => {
+               // Helper function to safely check if an element exists by ID
+               // This handles IDs with special characters (like colons) that are invalid in CSS selectors
+               const elementExistsById = (id) => {
+                  try {
+                     return document.getElementById(id) !== null;
+                  } catch {
+                     return false;
+                  }
+               };
+
+               try {
+                  const url = new URL(a.href);
+                  
+                  // Keep links to different domains
+                  if (url.hostname !== window.location.hostname) {
+                     return;
+                  }
+                  
+                  // Keep links with valid local hash anchors
+                  if (url.hash && elementExistsById(url.hash.slice(1))) {
+                     return;
+                  }
+                  
+                  // Remove links to same domain without valid hash
+                  a.replaceWith(...a.childNodes);
+               } catch {
+                  // Handle relative URLs or invalid URL formats
+                  if (a.href.startsWith('#') && elementExistsById(a.href.slice(1))) {
+                     return;
+                  }
+                  
+                  // Remove invalid or non-local links
+                  a.replaceWith(...a.childNodes);
+               }
+            });
             content = tempDivForLinks.innerHTML;
 
             // Parse the rendered HTML to check for dd elements. xref.content is a string that contains HTML, in the form of <dd>...</dd>'s
@@ -120,7 +169,7 @@ function insertTrefs(allXTrefs) {
                   // Clone the node to avoid removing it from tempDiv during insertion
                   const clonedDD = dd.cloneNode(true);
                   // Add necessary classes
-                  clonedDD.classList.add('transcluded-xref-term', 'transcluded-xref-term-embedded');
+                  clonedDD.classList.add('term-external', 'term-external-embedded');
                   // Add to fragment
                   fragment.appendChild(clonedDD);
                });
@@ -130,7 +179,7 @@ function insertTrefs(allXTrefs) {
                   `"content": "This term was not found in the external repository"`
                */
                const contentEl = document.createElement('dd');
-               contentEl.classList.add('transcluded-xref-term', 'transcluded-xref-term-embedded');
+               contentEl.classList.add('term-external', 'term-external-embedded');
                contentEl.innerHTML = tempDiv.innerHTML;
                fragment.appendChild(contentEl);
             }

@@ -245,7 +245,7 @@ graph TD
 ```
 </pre>
 
-```js
+```chart
 {
   "type": "pie",
   "data": {

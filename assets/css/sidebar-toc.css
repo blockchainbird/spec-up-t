@@ -93,8 +93,9 @@ ul.toc a:focus {
     /* Ensure the focus outline is visible */
 }
 
-.powered-by {
+.spec-footer {
     font-size: 0.7em;
+    text-align: center;
 }
 
 /* Add a subtle visual cue for active/selected item */

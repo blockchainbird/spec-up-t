@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
+const Logger = require('./utils/logger');
 const outputDir = path.join(process.cwd(), '.cache');
 const initFlagPath = path.join(outputDir, 'init.flag');
 
@@ -20,9 +21,9 @@ async function initialize() {
         // Create the init flag file
         await fs.writeFile(initFlagPath, 'Initialization completed.');
 
-        console.log('Initialization complete.');
+        Logger.success('Initialization complete.');
     } catch (error) {
-        console.error(`Initialization failed: ${error.message}`);
+        Logger.error(`Initialization failed: ${error.message}`);
     }
 }
 

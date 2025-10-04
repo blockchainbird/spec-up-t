@@ -3,3 +3,13 @@
 - Remove code if possible, instead of adding code
 - If you create files, explain why they are not deleted, why they should stay, and how to use them
 - This repository runs as an npm package in other repos that have this package installed via `package.json`; these other repos thus are the consuming projects
+- When working on client side JS or CSS (in `assets`), please remind me to run `gulp compile`
+- When using the term `tref` we mean this construction: `[[tref: externalreference, term, alias]]`
+- When using the term `xref` we mean this construction: `[[tref: externalreference, term]]`
+- When using the term `def` we mean this construction: `[[def: term, alias]]`
+- Be generous with writing explanations for each block of code
+- Please remind me to test on a separate testmachine
+- Never commit on your own. Always ask before
+- A very modular approach is preferred, the overhead is acceptable
+- Write code in a functional programming style, avoiding the use of classes
+- Use Kebab Case (kebab-case) for file names

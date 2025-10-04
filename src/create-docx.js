@@ -2,6 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, TableOfContents, Table, TableRow, TableCell, WidthType, AlignmentType } = require('docx');
+const Logger = require('./utils/logger');
 
 /**
  * Creates DOCX metadata from config
@@ -249,7 +250,7 @@ function createTitlePage(config) {
 
 (async () => {
     try {
-        console.log('Starting DOCX generation...');
+        Logger.info('Starting DOCX generation...');
 
         // Read and parse the specs.json file
         const config = fs.readJsonSync('specs.json');
@@ -261,8 +262,8 @@ function createTitlePage(config) {
 
         // Check if HTML file exists
         if (!fs.existsSync(filePath)) {
-            console.error(`❌ HTML file not found at ${filePath}`);
-            console.log('Please run "npm run render" first to generate the HTML file.');
+            Logger.error(`HTML file not found at ${filePath}`);
+            Logger.info('Please run "npm run render" first to generate the HTML file.');
             return;
         }
 
@@ -324,9 +325,9 @@ function createTitlePage(config) {
         // Write the DOCX file
         fs.writeFileSync(docxPath, buffer);
 
-        console.log('✅ DOCX generated successfully! Find the DOCX file in the docs directory.');
+    Logger.success('DOCX generated successfully! Find the DOCX file in the docs directory.');
     } catch (error) {
-        console.error('❌ Error generating DOCX:', error);
-        process.exit(1);
+    Logger.error('Error generating DOCX:', error);
+    process.exit(1);
     }
 })();

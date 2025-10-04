@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
+const Logger = require('../utils/logger');
 
 function copyBoilerplate() {
     const sourceDir = path.join(__dirname, './', 'boilerplate');
@@ -16,7 +17,7 @@ function copyBoilerplate() {
     const gitignoreDestPath = path.join(__dirname, '../../../../', '.gitignore');
     fs.renameSync(gitignorePath, gitignoreDestPath);
 
-    console.log('✅ Copied spec-up-t-boilerplate to current directory');
+    Logger.success('Copied spec-up-t-boilerplate to current directory');
 }
 
 module.exports = copyBoilerplate;

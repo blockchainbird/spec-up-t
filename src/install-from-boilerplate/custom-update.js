@@ -10,4 +10,15 @@ addScriptsKeys(configScriptsKeys, configOverwriteScriptsKeys);
 copySystemFiles();
 updateGitignore(gitIgnoreEntries.gitignorePath, gitIgnoreEntries.filesToAdd);
 
-console.log("✅ Custom update done");
+const Logger = require('../utils/logger');
+
+// We can use this file to do any custom updates during post-install.
+const customUpdate = () => {
+    // Custom logic here
+    // ...
+}
+
+// Call custom update
+customUpdate();
+
+Logger.success("Custom update done");

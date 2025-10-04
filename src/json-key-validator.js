@@ -10,6 +10,7 @@
 
 const fs = require('fs');
 const readlineSync = require('readline-sync');
+const Logger = require('./utils/logger');
 
 let errorFound = false;
 
@@ -25,6 +26,11 @@ function loadData() {
 
 // This function recursively checks if the required keys are present in the object
 function checkKeysSync(object, expectedKeys, parentKey = '') {
+    // Guard against undefined or non-iterable expected key definitions so the validator fails gracefully instead of throwing.
+    if (!Array.isArray(expectedKeys)) {
+        return;
+    }
+
     for (let key of expectedKeys) {
         if (Array.isArray(object)) {
             // If the object is an array, check each item within the array
@@ -34,7 +40,7 @@ function checkKeysSync(object, expectedKeys, parentKey = '') {
         } else if (typeof object === 'object') {
             // If the key is missing from the object, log an error
             if (!(key in object)) {
-                console.error(`❌ Error: Missing key '${key}' in ${parentKey}\n   We cannot guarantee that Spec-Up-T will work properly.\n   Here is an example specs.json file:\n   https://github.com/trustoverip/spec-up-t-starter-pack/blob/main/spec-up-t-boilerplate/specs.json`);
+                Logger.error(`Error: Missing key '${key}'\n   We cannot guarantee that Spec-Up-T will work properly.\n   Here is an example specs.json file:\n   https://github.com/trustoverip/spec-up-t-starter-pack/blob/main/spec-up-t-boilerplate/specs.json`);
                 errorFound = true;
                 pauseForEnterSync(); // Pause synchronously to allow user to acknowledge the error
             }
@@ -61,7 +67,7 @@ function runJsonKeyValidatorSync() {
             "logo",
             "logo_link",
             "source",
-            "external_specs"
+            // "external_specs"
             // "assets"  // Commented out: We no longer check for 'assets' in the specs object
         ],
         source: [
@@ -69,12 +75,12 @@ function runJsonKeyValidatorSync() {
             "account",
             "repo"
         ],
-        external_specs: [
-            "gh_page",
-            "external_spec",
-            "url",
-            "terms_dir"
-        ],
+        // external_specs: [
+        //     "gh_page",
+        //     "external_spec",
+        //     "url",
+        //     "terms_dir"
+        // ],
         // Removed the 'assets' block entirely, as it's no longer part of the required keys:
         // assets: [
         //     "path",
@@ -85,7 +91,7 @@ function runJsonKeyValidatorSync() {
 
     // Iterate over each spec entry in the specs array from the JSON file
     for (let [index, spec] of data.specs.entries()) {
-        console.log(`ℹ️ Checking spec #${index + 1}`);
+        Logger.info(`Checking spec #${index + 1}`);
 
         // Check for keys defined in expectedKeys.specs
         checkKeysSync(spec, expectedKeys.specs, `specs[${index}]`);
@@ -96,7 +102,7 @@ function runJsonKeyValidatorSync() {
         }
 
         // Check for keys inside the 'external_specs' array, if present
-        if (spec.external_specs) {
+        if (spec.external_specs && Array.isArray(expectedKeys.external_specs)) {
             checkKeysSync(spec.external_specs, expectedKeys.external_specs, `specs[${index}].external_specs`);
         }
 
@@ -108,7 +114,7 @@ function runJsonKeyValidatorSync() {
 
     // If no errors were found, print a success message
     if (!errorFound) {
-        console.log('✅ All keys are present. No errors found. Continuing…');
+        Logger.success('All keys are present. No errors found. Continuing…');
     }
 }
 

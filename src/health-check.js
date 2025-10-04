@@ -44,6 +44,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const Logger = require('./utils/logger');
 const https = require('https');
 const fileOpener = require('./utils/file-opener');
 
@@ -112,7 +113,7 @@ async function getRepoInfo() {
                     };
                 }
             } catch (error) {
-                console.error('Error reading boilerplate specs.json:', error);
+                Logger.error('Error reading boilerplate specs.json:', error);
             }
         }
 
@@ -176,10 +177,10 @@ async function getRepoInfo() {
                 }
             }
         } else {
-            console.log('specs.json not found');
+            Logger.info('specs.json not found');
         }
     } catch (error) {
-        console.error('Error reading specs.json:', error);
+        Logger.error('Error reading specs.json:', error);
     }
     
     // Return default values if specs.json doesn't exist or doesn't contain the required information
@@ -221,19 +222,19 @@ function checkRepositoryExists(host, account, repo) {
             });
             
             request.on('error', (error) => {
-                console.error('Error checking repository existence:', error.message);
+                Logger.error('Error checking repository existence:', error.message);
                 resolve(false);
             });
             
             request.on('timeout', () => {
-                console.error('Timeout checking repository existence');
+                Logger.error('Timeout checking repository existence');
                 request.destroy();
                 resolve(false);
             });
             
             request.end();
         } catch (error) {
-            console.error('Error checking repository existence:', error.message);
+            Logger.error('Error checking repository existence:', error.message);
             resolve(false);
         }
     });
@@ -345,7 +346,7 @@ function getStatusDisplay(result) {
  * }
  */
 async function runHealthCheck() {
-    console.log('Running health checks...');
+    Logger.info('Running health checks...');
 
     // Collection to store all check results
     const results = [];

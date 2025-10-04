@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const Logger = require('../utils/logger');
 
 /**
  * Reads the content of a file or returns an empty string if the file does not exist.
@@ -42,9 +43,9 @@ async function updateGitignore(gitignorePath, filesToAdd) {
         // Write the updated content back to the .gitignore file
         await fs.writeFile(gitignorePath, updatedGitignoreContent, 'utf8');
 
-        console.log('✅ Updated .gitignore file');
+        Logger.success('Updated .gitignore file');
     } catch (error) {
-        console.error('❌ Error updating .gitignore:', error.message);
+        Logger.error('Error updating .gitignore:', error.message);
     }
 }
 

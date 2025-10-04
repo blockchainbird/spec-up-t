@@ -1,0 +1,60 @@
+/**
+ * @fileoverview Styles for the definition buttons container that holds both
+ * the meta-info toggle button and the collapse-all-definitions button.
+ * @author Kor Dwarshuis
+ * @version 2.0.0
+ * @since 2025-10-02
+ * @updated 2025-10-02 - Refactored from float to flexbox for better responsiveness
+ * @description This CSS file provides the styling for a container that groups
+ * multiple control buttons in definition list terms (dt elements). The container
+ * uses flexbox within a flex parent (the dt) for proper responsive alignment.
+ */
+
+/**
+ * Container that holds both definition control buttons.
+ * Uses flexbox for proper alignment and spacing of child buttons.
+ * Positioned using flex properties instead of float for better responsiveness.
+ * The parent dt element uses flexbox, so this container is a flex item.
+ */
+.definition-buttons-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* Flex item properties - shrink to content size, don't grow */
+  flex: 0 0 auto;
+  /* Ensure buttons stay together and don't wrap internally */
+  flex-wrap: nowrap;
+  position: relative;
+  z-index: 5;
+  /* Ensure minimum size for touch targets */
+  min-height: 2rem;
+}
+
+/**
+ * Responsive behavior: on very small screens, allow container to take full width
+ * This ensures buttons remain accessible and don't overlap with text
+ */
+@media (max-width: 576px) {
+  .definition-buttons-container {
+    flex: 0 0 100%;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+}
+
+/**
+ * Remove individual float from buttons since the container handles positioning.
+ * This prevents conflicts between multiple layout declarations.
+ */
+.definition-buttons-container .collapse-all-defs-button {
+  float: none;
+  /* Ensure buttons don't shrink too small */
+  flex-shrink: 0;
+}
+
+.definition-buttons-container .meta-info-toggle-button {
+  float: none;
+  /* Ensure buttons don't shrink too small */
+  flex-shrink: 0;
+}
+

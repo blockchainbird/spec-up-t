@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const Logger = require('../utils/logger');
 
 /**
  * Check if the terms-and-definitions-intro.md file exists in the spec directory
@@ -67,7 +68,7 @@ async function checkTermsIntroFile(projectRoot) {
     
     return results;
   } catch (error) {
-    console.error('Error checking terms-and-definitions-intro.md file:', error);
+    Logger.error('Error checking terms-and-definitions-intro.md file:', error);
     return [{
       name: 'Terms intro file check',
       success: false,

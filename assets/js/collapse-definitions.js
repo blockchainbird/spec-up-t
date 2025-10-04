@@ -1,12 +1,14 @@
 /**
  * @fileoverview Manages collapsible definition lists with visual state indicators.
  * @author Kor Dwarshuis
- * @version 1.0.0
+ * @version 1.0.1
+ * @updated 2025-10-02 - Refactored to use centralized button container utilities
  * @description This module provides functionality to toggle the visibility
  * of definition descriptions in a document with a smooth user experience.
  * It creates interactive buttons with three toggle states and prevents
  * UI jumping during transitions using fixed positioning and requestAnimationFrame.
  * @requires insert-trefs.js - For the initializeOnTrefsInserted helper function
+ * @requires definition-button-container-utils.js - For the addButtonToContainer utility function
  */
 
 /**
@@ -162,6 +164,7 @@ function collapseDefinitions() {
 
     /**
      * Creates and appends toggle buttons to all definition terms.
+     * Creates or reuses a button container and adds the collapse button to it.
      * Each button contains state indicators for the three visibility states,
      * and is initialized to show all definitions (state 2).
      * @function
@@ -184,7 +187,9 @@ function collapseDefinitions() {
             // Set initial active state
             button.querySelector('.state-indicator[data-state="2"]').classList.add('active');
 
-            dt.appendChild(button);
+            // Use the centralized utility to add the button to the container
+            // Prepend=false (default) ensures collapse button appears after meta-info button
+            addButtonToContainer(dt, button);
         });
     }
 
