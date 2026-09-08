@@ -8,6 +8,7 @@ const { collectTermsFromMarkdown, buildTermAnchorMap, renderTerminologyDl } = re
 const { collectCitations, renderBibliography, sanitizeBibliographyAnchor } = require('./bibliography');
 const { collectFlow, nestSections, renderSectionTree } = require('./body-walker');
 const { createRfcxmlParser } = require('./create-rfcxml-parser');
+const { uniquifyAnchor } = require('./term-anchor');
 
 const SECURITY_STUB = 'This document specifies terminology and has no direct effect on the security of implementations or deployments.';
 const IANA_STUB = 'This document has no IANA actions.';
@@ -103,27 +104,47 @@ function collectExternalSpecReferences(spec, citations) {
     }
 }
 
-function ensureRequiredSections(middleXmlParts, flags, terminologyDl) {
+function ensureRequiredSections(middleXmlParts, flags, terminologyDl, usedAnchors = new Set()) {
     const parts = [...middleXmlParts];
     if (!flags.terminology && terminologyDl) {
-        parts.push(el('section', { anchor: 'terminology' }, [
+        parts.push(el('section', { anchor: uniquifyAnchor('terminology', usedAnchors) }, [
             el('name', 'Terminology'),
             terminologyDl
         ]));
     }
     if (!flags.security) {
-        parts.push(el('section', { anchor: 'security' }, [
+        parts.push(el('section', { anchor: uniquifyAnchor('security', usedAnchors) }, [
             el('name', 'Security Considerations'),
             el('t', escapeXml(SECURITY_STUB))
         ]));
     }
     if (!flags.iana) {
-        parts.push(el('section', { anchor: 'iana' }, [
+        parts.push(el('section', { anchor: uniquifyAnchor('iana', usedAnchors) }, [
             el('name', 'IANA Considerations'),
             el('t', escapeXml(IANA_STUB))
         ]));
     }
     return parts;
+}
+
+function collectUsedAnchors(terms, citations, spec) {
+    const used = new Set();
+    for (const term of terms || []) {
+        if (term.anchor) {
+            used.add(term.anchor);
+        }
+    }
+    for (const ref of citations ? citations.values() : []) {
+        if (ref.anchor) {
+            used.add(ref.anchor);
+        }
+    }
+    for (const entry of (spec && spec.external_specs) || []) {
+        if (entry && entry.external_spec) {
+            used.add(sanitizeBibliographyAnchor(entry.external_spec));
+        }
+    }
+    return used;
 }
 
 function createExportContext(spec, ietf, terms, citations) {
@@ -147,13 +168,14 @@ function buildRfcXml(spec, markdown, options = {}) {
 
     const terms = collectTermsFromMarkdown(markdown, { xtrefs: options.xtrefs });
     const ctx = createExportContext(spec, ietf, terms, citations);
+    ctx.usedAnchors = collectUsedAnchors(terms, citations, spec);
     const terminologyDl = terms.length ? renderTerminologyDl(terms, md, ctx) : '';
     ctx.terminologyDl = terminologyDl;
 
     const flow = collectFlow(tokens, ctx);
-    const nested = nestSections(flow, { title: ietf.title });
+    const nested = nestSections(flow, { title: ietf.title, usedAnchors: ctx.usedAnchors });
     const middleRendered = renderSectionTree(nested.middle, ctx);
-    const middle = ensureRequiredSections(middleRendered, nested.flags, terminologyDl);
+    const middle = ensureRequiredSections(middleRendered, nested.flags, terminologyDl, ctx.usedAnchors);
     const backRendered = renderSectionTree(nested.back, ctx);
     const bibliography = renderBibliography(citations);
     const backParts = [...backRendered];

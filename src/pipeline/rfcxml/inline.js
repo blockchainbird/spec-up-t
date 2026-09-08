@@ -76,6 +76,7 @@ function renderInlineTokens(tokens, ctx) {
         return '';
     }
     let out = '';
+    let linkDepth = 0;
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
         switch (token.type) {
@@ -84,7 +85,7 @@ function renderInlineTokens(tokens, ctx) {
                 break;
             case 'softbreak':
             case 'hardbreak':
-                out += '<br/>';
+                out += linkDepth > 0 ? ' ' : '<br/>';
                 break;
             case 'code_inline':
                 out += `<tt>${escapeXml(token.content)}</tt>`;
@@ -109,10 +110,12 @@ function renderInlineTokens(tokens, ctx) {
                 break;
             case 'link_open': {
                 const href = token.attrGet ? token.attrGet('href') : (token.attrs || []).find(a => a[0] === 'href')?.[1];
+                linkDepth++;
                 out += `<eref target="${escapeXml(href || '')}">`;
                 break;
             }
             case 'link_close':
+                linkDepth = Math.max(0, linkDepth - 1);
                 out += '</eref>';
                 break;
             case 'template':
@@ -127,7 +130,7 @@ function renderInlineTokens(tokens, ctx) {
             }
             case 'html_inline':
                 if (/^<br\s*\/?>$/i.test(token.content)) {
-                    out += '<br/>';
+                    out += linkDepth > 0 ? ' ' : '<br/>';
                 }
                 break;
             default:

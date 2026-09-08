@@ -56,6 +56,15 @@ describe('rfcxml inline', () => {
         expect(xml).toContain('<xref target="term-event">Event</xref>');
     });
 
+    test('line breaks inside markdown links become spaces, not br', () => {
+        const tokens = md.parse('[Concise Binary Object Representation (CBOR)\n](https://www.rfc-editor.org/rfc/rfc8949.html)', {});
+        const inline = tokens.find(t => t.type === 'inline');
+        const xml = renderInlineToken(inline, ctx());
+        expect(xml).toContain('<eref target="https://www.rfc-editor.org/rfc/rfc8949.html">');
+        expect(xml).not.toMatch(/<eref[^>]*>[\s\S]*<br\/>/);
+        expect(xml).toContain('CBOR');
+    });
+
     test('renderMarkdownInline and paragraphs', () => {
         const c = ctx();
         expect(renderMarkdownInline(md, 'Hello MUST', c)).toContain('<bcp14>MUST</bcp14>');

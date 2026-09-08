@@ -55,10 +55,27 @@ function headingToAnchor(text) {
     return candidate;
 }
 
+function uniquifyAnchor(anchor, used) {
+    const usedSet = used || new Set();
+    let candidate = String(anchor || 'section');
+    if (!isXmlName(candidate)) {
+        candidate = headingToAnchor(candidate);
+    }
+    let unique = candidate;
+    let n = 2;
+    while (usedSet.has(unique)) {
+        unique = `${candidate}-${n}`;
+        n++;
+    }
+    usedSet.add(unique);
+    return unique;
+}
+
 module.exports = {
     slugifyTerm,
     termToAnchor,
     displayTermLabel,
     isXmlName,
-    headingToAnchor
+    headingToAnchor,
+    uniquifyAnchor
 };

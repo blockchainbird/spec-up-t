@@ -1,4 +1,4 @@
-const { slugifyTerm, termToAnchor, displayTermLabel, isXmlName, headingToAnchor } = require('./term-anchor');
+const { slugifyTerm, termToAnchor, displayTermLabel, isXmlName, headingToAnchor, uniquifyAnchor } = require('./term-anchor');
 
 describe('rfcxml term-anchor', () => {
     test('slugifies terms and strips unsafe characters', () => {
@@ -25,5 +25,12 @@ describe('rfcxml term-anchor', () => {
         expect(headingToAnchor('Introduction')).toBe('introduction');
         expect(headingToAnchor('3. Workflow')).toBe('s-3.-workflow');
         expect(isXmlName(headingToAnchor('3. Workflow'))).toBe(true);
+    });
+
+    test('uniquifyAnchor suffixes collisions', () => {
+        const used = new Set();
+        expect(uniquifyAnchor('introduction', used)).toBe('introduction');
+        expect(uniquifyAnchor('introduction', used)).toBe('introduction-2');
+        expect(uniquifyAnchor('introduction', used)).toBe('introduction-3');
     });
 });
