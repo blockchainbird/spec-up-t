@@ -154,5 +154,91 @@ describe('rfcxml body-walker', () => {
         expect(xml).toContain('<sourcecode type="json">');
         expect(xml).toContain('diagram omitted');
         expect(c.warnings.some(w => /mermaid/i.test(w))).toBe(true);
+        expect(xml).toContain('<th>A</th>');
+        expect(xml).not.toContain('<th><t>A</t></th>');
+    });
+
+    test('emits rowspan, alignment, and table captions', () => {
+        const markdown = [
+            '## Introduction',
+            '',
+            '| Stage | Direct Products | ATP Yields |',
+            '| ----: | --------------: | ---------: |',
+            '| Glycolysis | 2 ATP | |',
+            '| ^^ | 2 NADH | 3--5 ATP |',
+            '[Net ATP yields per hexose]'
+        ].join('\n');
+        const c = ctx();
+        const flow = collectFlow(md.parse(markdown, {}), c);
+        const nested = nestSections(flow, {});
+        const xml = renderSectionTree(nested.middle, c).join('\n');
+        expect(xml).toContain('<name>Net ATP yields per hexose</name>');
+        expect(xml).toContain('rowspan="2"');
+        expect(xml).toContain('align="right"');
+        expect(xml).toContain('<td rowspan="2" align="right">Glycolysis</td>');
+        expect(xml).not.toMatch(/<t>Glycolysis<\/t>/);
+    });
+
+    test('pads short markdown table rows to the header width', () => {
+        const markdown = [
+            '## Introduction',
+            '',
+            '| Type | Title | Class | Description |',
+            '| --- | --- | --- |',
+            '|     | **Key Event Messages** | |',
+            '| `icp` | Inception | Establishment | Incepts an AID |'
+        ].join('\n');
+        const c = ctx();
+        const flow = collectFlow(md.parse(markdown, {}), c);
+        const nested = nestSections(flow, {});
+        const xml = renderSectionTree(nested.middle, c).join('\n');
+        const rows = xml.match(/<tr>[\s\S]*?<\/tr>/g) || [];
+        const widths = rows.map(row => (row.match(/<t[dh]\b/g) || []).length);
+        expect(new Set(widths).size).toBe(1);
+        expect(widths[0]).toBe(4);
+    });
+
+    test('wraps sourcecode in figure inside notice asides', () => {
+        const markdown = [
+            '## Introduction',
+            '',
+            '::: example Code Example',
+            '',
+            '```json',
+            '{"a":1}',
+            '```',
+            '',
+            ':::'
+        ].join('\n');
+        const c = ctx();
+        const flow = collectFlow(md.parse(markdown, {}), c);
+        const nested = nestSections(flow, {});
+        const xml = renderSectionTree(nested.middle, c).join('\n');
+        expect(xml).toContain('<aside>');
+        expect(xml).toContain('<figure>');
+        expect(xml).toContain('<sourcecode type="json">');
+        expect(xml).not.toMatch(/<aside>\s*<sourcecode/);
+    });
+
+    test('uniquifies duplicate heading anchors', () => {
+        const markdown = [
+            '## Introduction',
+            '',
+            'One.',
+            '',
+            '## Protocol',
+            '',
+            '### Introduction',
+            '',
+            'Two.'
+        ].join('\n');
+        const c = ctx();
+        const usedAnchors = new Set();
+        const flow = collectFlow(md.parse(markdown, {}), c);
+        const nested = nestSections(flow, { usedAnchors });
+        const xml = renderSectionTree(nested.middle, { ...c, usedAnchors }).join('\n');
+        expect(xml).toContain('anchor="introduction"');
+        expect(xml).toContain('anchor="introduction-2"');
+        expect(xml.match(/anchor="introduction"/g)).toHaveLength(1);
     });
 });

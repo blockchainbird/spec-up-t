@@ -3,7 +3,7 @@
  */
 
 const { el, escapeXml } = require('./xml-builder');
-const { headingToAnchor } = require('./term-anchor');
+const { headingToAnchor, uniquifyAnchor } = require('./term-anchor');
 const { renderInlineToken } = require('./inline');
 
 const SKIP_HEADING_RE = /^(status of this memo|copyright notice|table of contents|authors?'? addresses|colophon)$/i;
@@ -102,6 +102,16 @@ function renderList(tokens, start, ctx) {
     return { xml: el(tag, items), next: end + 1 };
 }
 
+function wrapSourcecodeInFigure(parts) {
+    return (Array.isArray(parts) ? parts : [parts]).map(xml => {
+        const text = String(xml || '').trimStart();
+        if (text.startsWith('<sourcecode')) {
+            return el('figure', xml);
+        }
+        return xml;
+    });
+}
+
 function wrapT(inner) {
     const text = String(inner || '').trim();
     if (!text) {
@@ -116,15 +126,135 @@ function wrapT(inner) {
     return `<t>${inner}</t>`;
 }
 
+function tokenAttr(token, name) {
+    if (!token) {
+        return null;
+    }
+    if (typeof token.attrGet === 'function') {
+        return token.attrGet(name);
+    }
+    const found = (token.attrs || []).find(pair => pair[0] === name);
+    return found ? found[1] : null;
+}
+
+function cellAttrs(token) {
+    const attrs = {};
+    const rowspan = tokenAttr(token, 'rowspan');
+    const colspan = tokenAttr(token, 'colspan');
+    if (rowspan && Number(rowspan) !== 1) {
+        attrs.rowspan = String(rowspan);
+    }
+    if (colspan && Number(colspan) !== 1) {
+        attrs.colspan = String(colspan);
+    }
+    const style = tokenAttr(token, 'style') || '';
+    const align = /text-align:\s*(left|center|right)/i.exec(style);
+    if (align) {
+        attrs.align = align[1].toLowerCase();
+    }
+    return attrs;
+}
+
+function makeCell(tag, token, inner) {
+    const attrs = cellAttrs(token);
+    return {
+        xml: el(tag, attrs, inner || ' '),
+        tag,
+        rowspan: attrs.rowspan ? Number(attrs.rowspan) : 1,
+        colspan: attrs.colspan ? Number(attrs.colspan) : 1
+    };
+}
+
+function emptyCell(tag) {
+    return { xml: el(tag, ' '), tag, rowspan: 1, colspan: 1 };
+}
+
+function tableColumnCount(theadCells, bodyRows) {
+    const occupancy = [];
+    let width = 0;
+
+    function measure(row) {
+        let col = 0;
+        let i = 0;
+        while (i < row.length || occupancy.slice(col).some(n => n > 0)) {
+            if ((occupancy[col] || 0) > 0) {
+                occupancy[col]--;
+                col++;
+                continue;
+            }
+            if (i >= row.length) {
+                break;
+            }
+            const cell = row[i++];
+            const cs = cell.colspan || 1;
+            const rs = cell.rowspan || 1;
+            for (let k = 0; k < cs; k++) {
+                occupancy[col + k] = rs - 1;
+            }
+            col += cs;
+        }
+        width = Math.max(width, col);
+    }
+
+    measure(theadCells);
+    for (const row of bodyRows) {
+        measure(row);
+    }
+    return width;
+}
+
+function padTableRow(row, width, occupancy, fallbackTag) {
+    const padded = [];
+    let col = 0;
+    let i = 0;
+    while (col < width) {
+        if ((occupancy[col] || 0) > 0) {
+            occupancy[col]--;
+            col++;
+            continue;
+        }
+        const cell = i < row.length ? row[i++] : emptyCell(fallbackTag);
+        padded.push(cell);
+        const cs = Math.max(1, cell.colspan || 1);
+        const rs = Math.max(1, cell.rowspan || 1);
+        for (let k = 0; k < cs; k++) {
+            occupancy[col + k] = rs - 1;
+        }
+        col += cs;
+    }
+    return padded;
+}
+
+function padTableRows(theadCells, bodyRows) {
+    const width = tableColumnCount(theadCells, bodyRows);
+    if (!width) {
+        return { theadCells, bodyRows };
+    }
+    const occupancy = [];
+    const paddedHead = theadCells.length
+        ? padTableRow(theadCells, width, occupancy, 'th')
+        : theadCells;
+    const paddedBody = bodyRows.map(row => padTableRow(row, width, occupancy, 'td'));
+    return { theadCells: paddedHead, bodyRows: paddedBody };
+}
+
 function renderTable(tokens, start, ctx) {
     const end = findClose(tokens, start, 'table_open', 'table_close');
     const theadCells = [];
     const bodyRows = [];
     let currentRow = null;
     let inHead = false;
+    let caption = '';
 
     for (let i = start + 1; i < end; i++) {
         const token = tokens[i];
+        if (token.type === 'caption_open') {
+            const capEnd = findClose(tokens, i, 'caption_open', 'caption_close');
+            const inline = tokens.slice(i, capEnd).find(t => t.type === 'inline');
+            caption = inline ? renderInlineToken(inline, ctx) : '';
+            i = capEnd;
+            continue;
+        }
         if (token.type === 'thead_open') inHead = true;
         if (token.type === 'thead_close') inHead = false;
         if (token.type === 'tr_open') currentRow = [];
@@ -145,18 +275,23 @@ function renderTable(tokens, start, ctx) {
             const cellEnd = findClose(tokens, i, token.type, closeType);
             const innerTokens = tokens.slice(i + 1, cellEnd);
             const inline = innerTokens.find(t => t.type === 'inline');
-            const cellXml = wrapT(inline ? renderInlineToken(inline, ctx) : '');
-            currentRow.push(el(token.type.startsWith('th') ? 'th' : 'td', cellXml || '<t> </t>'));
+            const inner = inline ? renderInlineToken(inline, ctx) : '';
+            const tag = token.type.startsWith('th') ? 'th' : 'td';
+            currentRow.push(makeCell(tag, token, inner));
             i = cellEnd;
         }
     }
 
+    const padded = padTableRows(theadCells, bodyRows);
     const parts = [];
-    if (theadCells.length) {
-        parts.push(el('thead', el('tr', theadCells)));
+    if (caption) {
+        parts.push(el('name', caption));
     }
-    if (bodyRows.length) {
-        parts.push(el('tbody', bodyRows.map(row => el('tr', row))));
+    if (padded.theadCells.length) {
+        parts.push(el('thead', el('tr', padded.theadCells.map(cell => cell.xml))));
+    }
+    if (padded.bodyRows.length) {
+        parts.push(el('tbody', padded.bodyRows.map(row => el('tr', row.map(cell => cell.xml)))));
     }
     return { xml: el('table', parts), next: end + 1 };
 }
@@ -272,7 +407,7 @@ function walkOne(tokens, i, ctx, end = tokens.length) {
             if (token.type.endsWith('_open') && token.type.startsWith('container_')) {
                 const closeType = token.type.replace('_open', '_close');
                 const close = findClose(tokens, i, token.type, closeType);
-                const inner = renderTokenRange(tokens, i + 1, close, ctx);
+                const inner = wrapSourcecodeInFigure(renderTokenRange(tokens, i + 1, close, ctx));
                 return { xml: el('aside', inner), next: close + 1 };
             }
             return { xml: '', next: i + 1 };
@@ -313,6 +448,7 @@ function nestSections(flow, options = {}) {
     const back = [];
     const flags = { security: false, iana: false, terminology: false };
 
+    const usedAnchors = options.usedAnchors || new Set();
     const stack = [{ level: 0, children: middle, bucket: 'middle' }];
 
     function current() {
@@ -358,7 +494,7 @@ function nestSections(flow, options = {}) {
             level: item.level,
             name: item.text,
             kind,
-            anchor: headingToAnchor(item.text),
+            anchor: uniquifyAnchor(headingToAnchor(item.text), usedAnchors),
             children: []
         };
 
@@ -403,7 +539,7 @@ function renderSection(section, ctx) {
     return el('section', attrs, inner);
 }
 
-function wrapOrphanBlocks(nodes) {
+function wrapOrphanBlocks(nodes, usedAnchors = new Set()) {
     const sections = nodes.filter(node => node.type === 'section');
     const orphans = nodes.filter(node => node.type !== 'section');
     if (!orphans.length) {
@@ -419,14 +555,15 @@ function wrapOrphanBlocks(nodes) {
         level: 2,
         name: 'Introduction',
         kind: 'body',
-        anchor: 'introduction',
+        anchor: uniquifyAnchor('introduction', usedAnchors),
         children: orphans
     });
     return sections;
 }
 
 function renderSectionTree(nodes, ctx) {
-    return wrapOrphanBlocks(nodes).map(node => {
+    const usedAnchors = (ctx && ctx.usedAnchors) || new Set();
+    return wrapOrphanBlocks(nodes, usedAnchors).map(node => {
         if (node.type === 'section') {
             return renderSection(node, ctx);
         }
