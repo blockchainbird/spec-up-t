@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rfc xmlns:xi="http://www.w3.org/2001/XInclude" ipr="trust200902" docName="draft-example-terms-00" category="info" submissionType="IETF" consensus="false" tocInclude="true" sortRefs="true" symRefs="true" version="3">
+<front>
+  <title abbrev="Terms">Some Key Terms</title>
+  <seriesInfo name="Internet-Draft" value="draft-example-terms-00"/>
+  <author fullname="Nigel Davis" initials="N." surname="Davis" role="editor">
+    <organization>Example</organization>
+    <address><email>nigel@example.com</email></address>
+  </author>
+  <date year="2026" month="August" day="31"/>
+  <keyword>terminology</keyword>
+  <abstract><t>This document sets out some terms.</t></abstract>
+</front>
+<middle>
+  <section anchor="introduction">
+    <name>Introduction</name>
+    <t>This document defines <xref target="term-event">Event</xref> and cites <xref target="RFC2119"/>. Implementations <bcp14>MUST</bcp14> comply.</t>
+  </section>
+  <section anchor="terminology">
+    <name>Terminology</name>
+    <t>The following terms apply.</t>
+    <dl newline="true" spacing="normal">
+      <dt anchor="term-event">Events (Event)</dt>
+      <dd><t>An Event is a noteworthy occurrence. See <xref target="RFC3877"/>.</t></dd>
+    </dl>
+  </section>
+  <section anchor="security-considerations">
+    <name>Security Considerations</name>
+    <t>There are no new security concerns.</t>
+  </section>
+  <section anchor="iana-considerations">
+    <name>IANA Considerations</name>
+    <t>This document has no IANA actions.</t>
+  </section>
+</middle>
+<back>
+  <references anchor="informative-references">
+    <name>Informative References</name>
+    <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml" parse="xml"/>
+    <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.3877.xml" parse="xml"/>
+  </references>
+</back>
+</rfc>
