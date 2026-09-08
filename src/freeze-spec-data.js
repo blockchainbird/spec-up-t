@@ -23,11 +23,11 @@ const sourceFile = path.join(outputPath, 'index.html');
 const destDir = 'snapshots';
 
 // A snapshot can only be created when the specification has been built at least once.
-// If index.html is missing, the user must run `npm run menu 1` (or `npm run menu 4`) first.
+// If index.html is missing, the user must render the spec first (`npm run menu 1`).
 if (!fs.existsSync(sourceFile)) {
     Logger.error(
         `Cannot create a snapshot: "${sourceFile}" does not exist.\n` +
-        `Please build the specification first (e.g. npm run menu 1 or npm run menu 9) and try again.`
+        `Please build the specification first (e.g. npm run menu 1) and try again.`
     );
     process.exit(0);
 }

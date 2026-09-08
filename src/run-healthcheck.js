@@ -2,13 +2,13 @@
  * Health Check Integration Script for spec-up-t
  * 
  * This script integrates the spec-up-t-healthcheck tool to validate consuming projects.
- * It runs FROM spec-up-t (menu option 7) but checks the CONSUMING project (current directory).
+ * It runs FROM spec-up-t (menu option 9) but checks the CONSUMING project (current directory).
  * 
  * Usage (from consuming project):
  *   npm run healthCheck
  * 
  * Or via spec-up-t menu:
- *   npm run menu -> [7] Run health check
+ *   npm run menu -> [9] Run health check
  * 
  * Options:
  *   --format text|json|html    Output format (default: html)

@@ -23,6 +23,33 @@ const OPTIONS = [
     { label: 'Freeze specification', action: () => runNpm('freeze') },
 ];
 
+const CHOICE_KEYS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+function keyForIndex(index) {
+    return CHOICE_KEYS[index];
+}
+
+function indexFromChoice(choice) {
+    if (choice == null || choice === '') {
+        return -1;
+    }
+    const index = CHOICE_KEYS.indexOf(String(choice).toUpperCase());
+    if (index < 0 || index >= OPTIONS.length) {
+        return -1;
+    }
+    return index;
+}
+
+function menuLines() {
+    return OPTIONS.map((option, index) => `   [${keyForIndex(index)}] ${option.label}`);
+}
+
+function choiceLimit() {
+    const keys = CHOICE_KEYS.slice(0, OPTIONS.length);
+    const letters = keys.replace(/[0-9]/g, '');
+    return keys + letters.toLowerCase() + 'qQ';
+}
+
 function sleep(ms) {
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
@@ -81,16 +108,7 @@ function displayIntro() {
 
   Please choose one of the following options:
 
-   [0] Add content
-   [1] Render specification
-   [2] Export to PDF
-   [3] Export to DOCX
-   [4] Collect external references
-   [5] Add, remove or view xref source
-   [6] Configure
-   [7] Run health check
-   [8] Open documentation website
-   [9] Freeze specification
+${menuLines().join('\n')}
    [Q] Quit
 
    An xref is a reference to another repository.
@@ -111,8 +129,8 @@ function remindMenu() {
 }
 
 function handleChoice(choice) {
-    const index = Number(choice);
-    if (Number.isInteger(index) && index >= 0 && index < OPTIONS.length) {
+    const index = indexFromChoice(choice);
+    if (index >= 0 && index < OPTIONS.length) {
         const option = OPTIONS[index];
         console.log(`\n\n  ************************************`);
         console.log(`  ${option.label}`);
@@ -127,14 +145,19 @@ function handleChoice(choice) {
 
 function main(args = process.argv.slice(2)) {
     const arg = args[0];
-    if (arg !== undefined && /^[0-9]$/.test(arg)) {
+    if (arg !== undefined && new RegExp(`^[${choiceLimit()}]$`).test(arg)) {
+        if (/^[Qq]$/.test(arg)) {
+            goodbye();
+            remindMenu();
+            return;
+        }
         handleChoice(arg);
         return;
     }
 
     displayIntro();
     const choice = readlineSync.keyIn('   Enter your choice: ', {
-        limit: '$<0-9>qQ',
+        limit: choiceLimit(),
         limitMessage: '',
     });
     console.log('\n');
@@ -153,3 +176,8 @@ if (require.main === module) {
 }
 
 module.exports = main;
+module.exports.OPTIONS = OPTIONS;
+module.exports.keyForIndex = keyForIndex;
+module.exports.indexFromChoice = indexFromChoice;
+module.exports.menuLines = menuLines;
+module.exports.choiceLimit = choiceLimit;
